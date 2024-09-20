@@ -94,10 +94,43 @@ as return
 SELECT SUM(SAL) AS SALARIO, SUM (COMM) AS COMISIONES FROM DBO.EMP WHERE DEPTNO = dbo.fnDevolverCodDept(@nombreD)
 
 select * from fnCalcularCosteSalarial('ACCOUNTING')
-select * from dbo.fnCalcularCosteSalarial('SALES')
+select * from dbo.fnCalcularCosteSalarial('operations')
 
 --4 cr. Realiza un procedimiento MostrarCostesSalariales que muestre los nombres de todos los departamentos y el coste salarial de cada uno de ellos. 
 -- Puedes usar la función del ejercicio 3.
+
+select * from dbo.DEPT
+select * from dbo.EMP
+
+
+
+create or alter procedure MostrarCostesSalariales
+AS BEGIN 
+DECLARE @nomD varChar(100)
+
+DECLARE cEj04 CURSOR FOR
+SELECT DNAME FROM DEPT
+OPEN cEj04
+
+FETCH cEj04 INTO @nomD
+
+WHILE (@@FETCH_STATUS = 0 )
+BEGIN
+
+SELECT @nomD aS nombreDept, ISNULL(s.SALARIO, 0) AS Salario
+from dbo.fnCalcularCosteSalarial(@nomD) AS S
+FETCH cEj04 INTO @nomD
+
+END
+
+CLOSE cEj04
+-- Liberar los recursos
+DEALLOCATE cEj04
+
+END
+
+execute MostrarCostesSalariales
+
 
 --5. Realiza un procedimiento MostrarAbreviaturas que muestre las tres primeras letras del nombre de cada empleado.
 
@@ -111,3 +144,75 @@ declare @tres varChar(3)
 END
 
 execute MostrarAbreviaturas
+
+--6 cr. Realiza un procedimiento MostrarMasAntiguos que muestre el nombre del empleado más antiguo de cada departamento junto con el nombre del departamento. Trata las excepciones que consideres necesarias.
+
+select * from EMP order by HIREDATE
+select * from DEPT
+
+
+create or alter procedure MostrarMasAntiguos
+AS BEGIN
+
+DECLARE @nomD varChar(50)
+
+DECLARE cEj06 CURSOR FOR 
+SELECT DNAME FROM DEPT
+OPEN cEj06
+
+FETCH cEj06 into @nomD
+
+WHILE (@@FETCH_STATUS = 0 )
+BEGIN
+
+SELECT TOP 1 ENAME, @nomD as empleado FROM EMP AS E WHERE  exists (SELECT DEPTNO FROM DEPT AS D WHERE D.DNAME = @nomD AND D.DEPTNO = E.DEPTNO) order by HIREDATE
+
+FETCH cEj06 INTO @nomD
+
+END
+
+CLOSE cEj06
+-- Liberar los recursos
+DEALLOCATE cEj06
+
+END
+
+execute MostrarMasAntiguos
+
+--7 cr. Realiza un procedimiento MostrarJefes que reciba el nombre de un departamento y muestre los nombres de los empleados de ese departamento que son jefes de otros empleados.
+-- Trata las excepciones que consideres necesarias.
+
+--8. Realiza un procedimiento MostrarMejoresVendedores que muestre los nombres de los dos vendedores con más comisiones. Trata las excepciones que consideres necesarias.
+
+
+CREATE OR ALTER PROCEDURE MostrarMejoresVendedores
+AS BEGIN
+
+select TOP 2 SAL AS SALARIO from dbo.emp where JOB = 'SALESMAN' order by sal desc
+
+END
+
+Execute MostrarMejoresVendedores
+
+--10. Realiza un procedimiento RecortarSueldos que recorte el sueldo un 20% a los empleados cuyo nombre empiece por la  letra que recibe como parámetro.Trata las excepciones  que consideres necesarias
+
+select * from EMP
+
+CREATE OR ALTER PROCEDURE RecortarSueldos 
+(@letra varChar(1))
+AS BEGIN
+
+UPDATE EMP
+ SET SAL = SAL - (SAL*0.2)
+ WHERE ENAME LIKE @letra+'%'
+
+END
+
+
+BEGIN TRANSACTION
+
+execute RecortarSueldos @letra = 'S'
+select * from EMP
+
+
+ROLLBACK
