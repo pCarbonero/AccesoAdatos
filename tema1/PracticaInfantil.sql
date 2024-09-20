@@ -182,6 +182,16 @@ execute MostrarMasAntiguos
 --7 cr. Realiza un procedimiento MostrarJefes que reciba el nombre de un departamento y muestre los nombres de los empleados de ese departamento que son jefes de otros empleados.
 -- Trata las excepciones que consideres necesarias.
 
+select * from EMP
+
+create or alter procedure MostrarJefes
+(@nomD varchar(30))
+AS BEGIN
+
+
+
+END
+
 --8. Realiza un procedimiento MostrarMejoresVendedores que muestre los nombres de los dos vendedores con más comisiones. Trata las excepciones que consideres necesarias.
 
 
