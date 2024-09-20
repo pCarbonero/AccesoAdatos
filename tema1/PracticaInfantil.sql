@@ -187,10 +187,30 @@ select * from EMP
 create or alter procedure MostrarJefes
 (@nomD varchar(30))
 AS BEGIN
+	declare @MGR int
 
+	declare cEj07 CURSOR FOR 
+	SELECT mgr FROM EMP where DEPTNO = dbo.fnDevolverCodDept(@nomD)
+	OPEN cEj07
 
+	FETCH cEj07 into @MGR
+
+	WHILE (@@FETCH_STATUS = 0 )
+		BEGIN
+
+			SELECT ENAME FROM EMP AS E WHERE EMPNO = @MGR
+
+			FETCH cEj07 INTO @MGR
+
+		END
+
+	CLOSE cEj07
+	-- Liberar los recursos
+	DEALLOCATE cEj07
 
 END
+
+execute MostrarJefes @nomD = 'ACCOUNTING'
 
 --8. Realiza un procedimiento MostrarMejoresVendedores que muestre los nombres de los dos vendedores con más comisiones. Trata las excepciones que consideres necesarias.
 
@@ -226,3 +246,42 @@ select * from EMP
 
 
 ROLLBACK
+
+
+--11 CR. Realiza un procedimiento BorrarBecarios que borre a los dos empleados más nuevos de cada departamento. Trata las excepciones que consideres necesarias.
+
+select * from EMP
+select * from DEPT
+
+create or alter procedure BorrarBecarios
+as begin
+
+	declare @numD int
+
+	declare crEj11 cursor for
+	select DEPTNO FROM DEPT
+	open crEj11
+
+	fetch crEj11 into @numD
+
+	WHILE (@@FETCH_STATUS = 0 )
+		BEGIN
+
+			delete EMP
+			where EMPNO in (SELECT TOP 2 EMPNO from EMP where DEPTNO = @numD order by HIREDATE desc)
+			
+
+			fetch crEj11 into @numD
+
+		END
+
+	CLOSE crEj11
+	-- Liberar los recursos
+	DEALLOCATE crEj11
+
+end
+
+begin transaction 
+execute BorrarBecarios
+select * from EMP where DEPTNO = 30 order by HIREDATE desc
+rollback
