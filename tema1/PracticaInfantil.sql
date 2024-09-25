@@ -91,7 +91,7 @@ create or alter function fnCalcularCosteSalarial
 (@nombreD as varChar(100))
 returns table	
 as return 
-SELECT SUM(SAL) AS SALARIO, SUM (COMM) AS COMISIONES FROM DBO.EMP WHERE DEPTNO = dbo.fnDevolverCodDept(@nombreD)
+SELECT ISNULL(SUM (SAL), 0) AS SALARIO, ISNULL(SUM (COMM), 0) AS COMISIONES FROM DBO.EMP WHERE DEPTNO = dbo.fnDevolverCodDept(@nombreD)
 
 select * from fnCalcularCosteSalarial('ACCOUNTING')
 select * from dbo.fnCalcularCosteSalarial('operations')
@@ -232,16 +232,22 @@ CREATE OR ALTER PROCEDURE RecortarSueldos
 (@letra varChar(1))
 AS BEGIN
 
-UPDATE EMP
- SET SAL = SAL - (SAL*0.2)
- WHERE ENAME LIKE @letra+'%'
-
+if @letra is not null
+begin
+	UPDATE EMP
+	SET SAL = SAL - (SAL*0.2)
+	WHERE ENAME LIKE @letra+'%'
 END
+else
+begin
+	raiserror('@letra tiene un valor nulo',16, 1)
+end
+end
 
 
 BEGIN TRANSACTION
 
-execute RecortarSueldos @letra = 'S'
+execute RecortarSueldos @letra = null
 select * from EMP
 
 
