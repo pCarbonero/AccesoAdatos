@@ -182,11 +182,14 @@ execute MostrarMasAntiguos
 --7 cr. Realiza un procedimiento MostrarJefes que reciba el nombre de un departamento y muestre los nombres de los empleados de ese departamento que son jefes de otros empleados.
 -- Trata las excepciones que consideres necesarias.
 
-select * from EMP
+select * from DEPT
 
 create or alter procedure MostrarJefes
 (@nomD varchar(30))
 AS BEGIN
+
+if exists (select DNAME FROM DEPT where DNAME = @nomD)
+begin
 	declare @MGR int
 
 	declare cEj07 CURSOR FOR 
@@ -207,7 +210,11 @@ AS BEGIN
 	CLOSE cEj07
 	-- Liberar los recursos
 	DEALLOCATE cEj07
-
+end
+else
+begin
+	print('ese departamento no existe')
+end
 END
 
 execute MostrarJefes @nomD = 'ACCOUNTING'
