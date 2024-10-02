@@ -19,6 +19,11 @@ declare @aprobados int
 declare @sobres int 
 declare @notables int 
 declare @suspensos int 
+--------
+declare @mejorA varchar(50)
+declare @mejorN int
+declare @peorA varchar(50)
+declare @peorN int
 
 
 	if exists (SELECT Nombre from ASIGNATURAS where nombre = @nombre)
@@ -48,32 +53,40 @@ declare @suspensos int
 			deallocate alumnos
 		-- //fin primer cursor//
 
-		-- //segundo cursor//
-			declare cantNotas cursor for
-				select 
-				ISNULL(COUNT(CASE WHEN NOTA >= 5 THEN 1 END),0) AS aprobados,
-				ISNULL(COUNT(CASE WHEN NOTA >= 9 THEN 1 END),0) AS sobresalientes,
-				ISNULL(COUNT(CASE WHEN NOTA >= 7 AND NOTA < 9 THEN 1 END),0) AS notables,
-				ISNULL(COUNT(CASE WHEN NOTA <= 4 THEN 1 END),9) AS insuficientes
-				from NOTAS
+			select @aprobados = ISNULL(COUNT(CASE WHEN NOTA >= 5 THEN 1 END),0) from dbo.NOTAS
 				inner join ASIGNATURAS AS A ON NOTAS.COD = A.COD
 				WHERE A.NOMBRE = @nombre
-			open cantNotas
+			select @sobres = ISNULL(COUNT(CASE WHEN NOTA >= 9 THEN 1 END),0) from dbo.NOTAS
+							inner join ASIGNATURAS AS A ON NOTAS.COD = A.COD
+				WHERE A.NOMBRE = @nombre
+			select @notables = ISNULL(COUNT(CASE WHEN NOTA >= 7 AND NOTA < 9 THEN 1 END),0) from dbo.NOTAS
+							inner join ASIGNATURAS AS A ON NOTAS.COD = A.COD
+				WHERE A.NOMBRE = @nombre
+			select @suspensos = ISNULL(COUNT(CASE WHEN NOTA < 5 THEN 1 END),0) from dbo.NOTAS
+							inner join ASIGNATURAS AS A ON NOTAS.COD = A.COD
+				WHERE A.NOMBRE = @nombre
 
-			fetch cantNotas into @aprobados, @sobres, @notables, @suspensos
 
-			while (@@FETCH_STATUS = 0)
-				begin
-					print('----------------------------------')
-					print('Aprobados: ' + Convert(varchar, @aprobados) + CHAR(13) + CHAR(10) +
+			print('Aprobados: ' + Convert(varchar, @aprobados) + CHAR(13) + CHAR(10) +
 					'Sobresalientes: ' + Convert(varchar, @sobres) + CHAR(13) + CHAR(10) +
 					'Notables: ' + Convert(varchar, @notables) + CHAR(13) + CHAR(10) +
 					'Suspensos: ' + Convert(varchar, @suspensos) + CHAR(13) + CHAR(10))
-					fetch cantNotas into @aprobados, @sobres, @notables, @suspensos
-				end
-			--//fin segundo cursor//
-			close cantNotas
-			deallocate cantNotas
+
+		-- para acabal
+		select TOP 1 @mejorA = Al.APENOM, @mejorN = N.NOTA from ALUMNOS AS AL
+		inner join NOTAS AS N ON AL.DNI = N.DNI
+		INNER JOIN ASIGNATURAS AS A ON N.COD = A.COD
+		where A.NOMBRE = @nombre
+		order by N.NOTA desc
+
+		select TOP 1 @peorA = Al.APENOM, @peorN = N.NOTA from ALUMNOS AS AL
+		inner join NOTAS AS N ON AL.DNI = N.DNI
+		INNER JOIN ASIGNATURAS AS A ON N.COD = A.COD
+		where A.NOMBRE = @nombre
+		order by N.NOTA 
+					
+		print('Mejor nota: ' + @mejorA + ', ' + CONVERT(varchar, @mejorN) + CHAR(13) + CHAR(10) +
+		'Sobresalientes: ' + @peorA + ', ' + CONVERT(varchar, @peorN))
 
 		end-- fin if
 		
