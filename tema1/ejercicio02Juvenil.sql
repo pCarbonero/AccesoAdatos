@@ -53,16 +53,16 @@ declare @peorN int
 			deallocate alumnos
 		-- //fin primer cursor//
 
-			select @aprobados = ISNULL(COUNT(CASE WHEN NOTA >= 5 THEN 1 END),0) from dbo.NOTAS
+			select @aprobados = COUNT(CASE WHEN NOTA >= 5 THEN 1 END) from dbo.NOTAS
 				inner join ASIGNATURAS AS A ON NOTAS.COD = A.COD
 				WHERE A.NOMBRE = @nombre
-			select @sobres = ISNULL(COUNT(CASE WHEN NOTA >= 9 THEN 1 END),0) from dbo.NOTAS
+			select @sobres = COUNT(CASE WHEN NOTA >= 9 THEN 1 END) from dbo.NOTAS
 							inner join ASIGNATURAS AS A ON NOTAS.COD = A.COD
 				WHERE A.NOMBRE = @nombre
-			select @notables = ISNULL(COUNT(CASE WHEN NOTA >= 7 AND NOTA < 9 THEN 1 END),0) from dbo.NOTAS
+			select @notables = COUNT(CASE WHEN NOTA >= 7 AND NOTA < 9 THEN 1 END) from dbo.NOTAS
 							inner join ASIGNATURAS AS A ON NOTAS.COD = A.COD
 				WHERE A.NOMBRE = @nombre
-			select @suspensos = ISNULL(COUNT(CASE WHEN NOTA < 5 THEN 1 END),0) from dbo.NOTAS
+			select @suspensos = COUNT(CASE WHEN NOTA < 5 THEN 1 END) from dbo.NOTAS
 							inner join ASIGNATURAS AS A ON NOTAS.COD = A.COD
 				WHERE A.NOMBRE = @nombre
 
@@ -86,7 +86,7 @@ declare @peorN int
 		order by N.NOTA 
 					
 		print('Mejor nota: ' + @mejorA + ', ' + CONVERT(varchar, @mejorN) + CHAR(13) + CHAR(10) +
-		'Sobresalientes: ' + @peorA + ', ' + CONVERT(varchar, @peorN))
+		'Peor nota: ' + @peorA + ', ' + CONVERT(varchar, @peorN))
 
 		end-- fin if
 		
